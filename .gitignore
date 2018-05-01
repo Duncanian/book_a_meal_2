@@ -1,0 +1,9 @@
+# Ignore these
+
+__pycache__/
+
+venv/
+
+.coverage
+
+*.pyc
