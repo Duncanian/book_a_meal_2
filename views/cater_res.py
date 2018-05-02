@@ -3,7 +3,7 @@ import uuid
 from models.models import Meals, Orders, Menu, db
 from flask_restful import Resource
 
-class Meal_man(Resource):
+class MealMan(Resource):
 	"""docstring for Meal_man"""
 	def post(self):
 		if request.json['meal_name'] == '' or request.json['meal_price'] == '':
@@ -12,7 +12,10 @@ class Meal_man(Resource):
 		if not isinstance(request.json['meal_name'], str):
 			return jsonify({'message' : 'Please enter a string value for meal'})
 
-		new_meal = Meals(meal_id = str(uuid.uuid4()), meal_name = request.json['meal_name'], meal_price = request.json['meal_price'],
+		if not isinstance(request.json['meal_price'], int):
+			return jsonify({'message' : 'Price should be a number'})
+
+		new_meal = Meals(meal_id = int(uuid.uuid4()), meal_name = request.json['meal_name'], meal_price = request.json['meal_price'],
 			meal_category = request.json['meal_category'], meal_day = request.json['meal_day'])
 		db.session.add(new_meal)
 		db.session.commit()
@@ -64,18 +67,17 @@ class Meal_man(Resource):
 class Menu(Resource):
 	"""docstring for Menu"""
 	def post(self):
-		meal = Meals.query.filter_by(meal_name=request.json['meal_name']).first()
+		meal = Meals.query.filter_by(meal_name=request.json['menu_name']).first()
 
 		if not meal:
 			return jsonify({"message" : "The meal was not found"})
 
-		new_menu = Menu(menu_id = meal.meal_id, menu_name = request.json['meal_name'], menu_price = request.json['meal_price'],
-			menu_category = request.json['meal_category'], menu_day = request.json['meal_day'])
+		new_menu = Menu(menu_id = meal.meal_id, menu_name = request.json['menu_name'], menu_price = request.json['menu_price'], menu_category = request.json['menu_category'], menu_day = request.json['menu_day'])
 		db.session.add(new_menu)
 		db.session.commit()
 		return jsonify({'message' : 'New meal added to the menu!'})
 
-class Orders_all(Resource):
+class OrdersAll(Resource):
 	"""docstring for Orders"""
 	def get(self):
 		orders = Orders.query.all()

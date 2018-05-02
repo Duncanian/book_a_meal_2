@@ -1,4 +1,5 @@
 from functools import wraps
+from os import getenv
 from models.models import User
 
 def token_required(f):
@@ -13,7 +14,7 @@ def token_required(f):
 			return jsonify({ "message" : "Token is missing!" }), 401
 		
 		try:
-			data = jwt.decode(token, app.config['SECRET_KEY'])
+			data = jwt.decode(token, getenv('SECRET_KEY'))
 			active_user = User.query.filter_by(user_id = data['user_id']).first()
 
 		except:

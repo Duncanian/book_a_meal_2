@@ -7,3 +7,5 @@ venv/
 .coverage
 
 *.pyc
+
+.env
