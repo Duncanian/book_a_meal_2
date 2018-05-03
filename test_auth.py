@@ -33,7 +33,7 @@ class TestAuth(GroundTests):
 
         #Login details
         self.u_data = {
-            "username": "ian3",
+            "username": "ian",
             "password": "#2345"
         }
 
@@ -55,6 +55,12 @@ class TestAuth(GroundTests):
             "password": 78
         }
 
+        #Wrong password login details
+        self.u_wrong = {
+            "username": 'ian',
+            "password": '#23456'
+        }
+
         # response = self.client.post(self.login_url, data=self.data)
         # self.token = json.loads(response.data)["token"]
         # self.headers = {
@@ -66,12 +72,12 @@ class TestAuth(GroundTests):
     def tearDown(self):
         GroundTests.tearDown(self)
 
-    # def test_register(self):
-    #     '''Test for successful register of a user'''
-    #     response = self.tester.post('/api/v1/auth/signup', data=json.dumps(self.registerdata), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], 'New user created!')
+    def test_register(self):
+        '''Test for successful register of a user'''
+        response = self.tester.post('/api/v1/auth/signup', data=json.dumps(self.registerdata), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], 'New user created!')
 
     # def test_users(self):
     #     response = self.tester.get('/api/v1/users')
@@ -79,46 +85,50 @@ class TestAuth(GroundTests):
     #     data = json.loads(response.data)
     #     self.assertIsInstance(data['data'], list, msg='Incorrect output type')
 
+    def test_register_blank(self):
+        '''Test for error when an input is left blank'''
+        response = self.tester.post('/api/v1/auth/signup', data=json.dumps(self.reg_miss_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], 'Please enter all the details')
 
-    # def test_register_blank(self):
-    #     '''Test for error when an input is left blank'''
-    #     response = self.tester.post('/api/v1/auth/signup', data=json.dumps(self.reg_miss_data), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], 'Please enter all the details')
-
-    # def test_register_wrong_data_type(self):
-    #     '''Test for error when an input is not a string'''
-    #     response = self.tester.post('/api/v1/auth/signup', data=json.dumps(self.reg_bad_data), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], 'Please enter a string value for username and password')
+    def test_register_wrong_data_type(self):
+        '''Test for error when an input is not a string'''
+        response = self.tester.post('/api/v1/auth/signup', data=json.dumps(self.reg_bad_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], 'Please enter a string value for username and password')
 
     def test_login_success(self):
         response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
-        #self.assertEqual(data['token'], "Login success")
-        print(data)
+        self.assertIsInstance(data['token'], str, msg='Incorrect output type')
 
-    # def test_login_blank(self):
-    #     response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_emt_data), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], 'Please enter all the details')
+    def test_login_blank(self):
+        response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_emt_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], 'Please enter all the details')
 
-    # def test_login_wrong_data_type(self):
-    #     '''Test for error when an input is not a string'''
-    #     response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_bad_data), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], 'Please enter a string value for username and password')
+    def test_login_wrong_data_type(self):
+        '''Test for error when an input is not a string'''
+        response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_bad_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], 'Please enter a string value for username and password')
 
-    # def test_login_gone_wrong(self):
-    #     response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_err_data), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], 'Please sign up then login')
+    def test_login_gone_wrong(self):
+        response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_err_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], 'Please sign up then login')
+
+    def test_wrong_pass_login(self):
+        response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_wrong), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], 'wrong password, please try again')
 
 if __name__ == "__main__":
     unittest.main()
