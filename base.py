@@ -22,7 +22,7 @@ def create_app(config_filename):
     api.add_resource(Menu, '/api/v1/menu/')
     api.add_resource(OrdersAll, '/api/v1/orders')
     api.add_resource(MenuOrders, '/api/v1/menu/', '/api/v1/orders',
-    	                '/api/v1/orders/<int:order_id>', '/api/v1/orders/<int:order_id>')
+    	                '/api/v1/orders/<string:order_id>', '/api/v1/orders/<string:order_id>')
 
     return app
 

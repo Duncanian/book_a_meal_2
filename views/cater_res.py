@@ -37,6 +37,7 @@ class MealMan(Resource):
 		return {"status": "success", "data": output}, 200
 
 	def put(self, meal_id):
+		post_data = request.get_json(force=True)
 		meal = Meals.query.filter_by(meal_id=meal_id).first()
 
 		if not meal:
@@ -48,10 +49,10 @@ class MealMan(Resource):
 		if not isinstance(request.json['meal_name'], str):
 			return jsonify({'message' : 'Please enter a string value for meal'})
 
-		meal.meal_name = request.json['meal_name']
-		meal.meal_price = request.json['meal_price']
-		meal.meal_category = request.json['meal_category']
-		meal.meal_day = request.json['meal_day']
+		meal.meal_name = post_data['meal_name']
+		meal.meal_price = post_data['meal_price']
+		meal.meal_category = post_data['meal_category']
+		meal.meal_day = post_data['meal_day']
 		db.session.commit()
 
 		return {"status": "success", "data": 'Meal modified!'}, 200
@@ -68,12 +69,13 @@ class MealMan(Resource):
 class Menu(Resource):
 	"""docstring for Menu"""
 	def post(self):
-		meal = Meals.query.filter_by(meal_name=request.json['menu_name']).first()
+		post_data = request.get_json(force=True)
+		meal = Meals.query.filter_by(meal_name=post_data['menu_name']).first()
 
 		if not meal:
 			return jsonify({"message" : "The meal was not found"})
 
-		new_menu = Menu(menu_id = meal.meal_id, menu_name = request.json['menu_name'], menu_price = request.json['menu_price'], menu_category = request.json['menu_category'], menu_day = request.json['menu_day'])
+		new_menu = Menu(menu_id = meal.meal_id, menu_name = post_data['menu_name'], menu_price = post_data['menu_price'], menu_category = post_data['menu_category'], menu_day = post_data['menu_day'])
 		db.session.add(new_menu)
 		db.session.commit()
 		return jsonify({'message' : 'New meal added to the menu!'})

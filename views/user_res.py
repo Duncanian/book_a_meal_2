@@ -82,7 +82,8 @@ class MenuOrders(Resource):
         return {"status": "success", "data": output}, 200
 
     def post(self):
-        meal = Menu.query.filter_by(menu_name=request.json['order_name']).first()
+        post_data = request.get_json(force=True)
+        meal = Menu.query.filter_by(menu_name=post_data['order_name']).first()
 
         if not meal:
             return jsonify({"message" : "The meal was not found in menu"})
@@ -92,20 +93,21 @@ class MenuOrders(Resource):
         if order:
             return jsonify({"message" : "The order exist!"})
 
-        new_order = Orders(order_id = meal.menu_id, order_name = request.json['order_name'], order_price = request.json['order_price'],
-            order_category = request.json['order_category'], order_day = request.json['order_day'], order_qty=1, order_user = request.json['order_user'])
+        new_order = Orders(order_id = meal.menu_id, order_name = post_data['order_name'], order_price = post_data['order_price'],
+            order_category = post_data['order_category'], order_day = post_data['order_day'], order_qty=1, order_user = post_data['order_user'])
         #Add name from jwt
         db.session.add(new_order)
         db.session.commit()
         return jsonify({'message' : 'Your order has been placed!'})
         
     def put(self, order_id):
+        post_data = request.get_json(force=True)
         order = Orders.query.filter_by(order_id=order_id).first()
 
         if not order:
             return jsonify({"message" : "The order was not found"})
 
-        order.order_qty = request.json['order_qty']
+        order.order_qty = post_data['order_qty']
         db.session.commit()
 
         return {"status": "success", "data": 'Order modified!'}, 200
