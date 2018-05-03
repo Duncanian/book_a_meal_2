@@ -61,14 +61,15 @@ class AuthLogin(Resource):
             return jsonify({'message' : 'Please sign up then login'})
 
         if check_password_hash(user.password, post_data['password']):
-            token = jwt.encode({"user_id" : user.user_id, "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, getenv('SECRET_KEY'), algorithm='HS256')
+            token = jwt.encode({"user_id" : user.user_id, "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, getenv('SECRET_KEY'))
             return jsonify({"token" : token.decode('UTF-8')})
         return {"message":"wrong password, please try again"}
         
 
 class MenuOrders(Resource):
     """docstring for MenuOrders"""
-    def get(self):
+    @token_required
+    def get(self, active_user):
         menu = Menu.query.all()
         output = []
         for meal in menu:
@@ -81,7 +82,8 @@ class MenuOrders(Resource):
 
         return {"status": "success", "data": output}, 200
 
-    def post(self):
+    @token_required
+    def post(self, active_user):
         post_data = request.get_json(force=True)
         meal = Menu.query.filter_by(menu_name=post_data['order_name']).first()
 
@@ -99,8 +101,9 @@ class MenuOrders(Resource):
         db.session.add(new_order)
         db.session.commit()
         return jsonify({'message' : 'Your order has been placed!'})
-        
-    def put(self, order_id):
+
+    @token_required
+    def put(self, active_user, order_id):
         post_data = request.get_json(force=True)
         order = Orders.query.filter_by(order_id=order_id).first()
 
@@ -112,7 +115,8 @@ class MenuOrders(Resource):
 
         return {"status": "success", "data": 'Order modified!'}, 200
 
-    def delete(self, order_id):
+    @token_required
+    def delete(self, active_user, order_id):
         order = Orders.query.filter_by(order_id=order_id).first()
 
         if not order:

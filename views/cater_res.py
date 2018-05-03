@@ -2,10 +2,12 @@ from flask import jsonify, request, make_response
 import uuid
 from models.models import Meals, Orders, Menu, db
 from flask_restful import Resource
+from auth.token import token_required, admin_only
 
 class MealMan(Resource):
 	"""docstring for Meal_man"""
-	def post(self):
+	@admin_only
+	def post(self, active_user):
 		post_data = request.get_json(force=True)
 		if post_data['meal_name'] == '' or post_data['meal_price'] == '':
 			return jsonify({'message' : 'Please enter all the details'})
@@ -22,7 +24,8 @@ class MealMan(Resource):
 		db.session.commit()
 		return jsonify({'message' : 'New meal added!'})
 
-	def get(self):
+	@admin_only
+	def get(self, active_user):
 		meals = Meals.query.all()
 		output = []
 		for meal in meals:
@@ -36,7 +39,8 @@ class MealMan(Resource):
 
 		return {"status": "success", "data": output}, 200
 
-	def put(self, meal_id):
+	@admin_only
+	def put(self, active_user, meal_id):
 		post_data = request.get_json(force=True)
 		meal = Meals.query.filter_by(meal_id=meal_id).first()
 
@@ -57,7 +61,8 @@ class MealMan(Resource):
 
 		return {"status": "success", "data": 'Meal modified!'}, 200
 
-	def delete(self, meal_id):
+	@admin_only
+	def delete(self, active_user, meal_id):
 		meal = Meals.query.filter_by(meal_id=meal_id).first()
 
 		if not meal:
@@ -68,7 +73,8 @@ class MealMan(Resource):
 
 class Menu(Resource):
 	"""docstring for Menu"""
-	def post(self):
+	@admin_only
+	def post(self, active_user):
 		post_data = request.get_json(force=True)
 		meal = Meals.query.filter_by(meal_name=post_data['menu_name']).first()
 
@@ -82,7 +88,8 @@ class Menu(Resource):
 
 class OrdersAll(Resource):
 	"""docstring for Orders"""
-	def get(self):
+	@admin_only
+	def get(self, active_user):
 		orders = Orders.query.all()
 		output = []
 		for order in orders:
