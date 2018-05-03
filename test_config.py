@@ -1,7 +1,7 @@
 from unittest import TestCase
 import uuid
-from .base import create_app
-from .config import config
+from base import create_app
+from config import config
 from models.models import User, Orders, Menu, db, Meals
 
 class GroundTests(TestCase):
@@ -60,7 +60,7 @@ class GroundTests(TestCase):
 
         self.tester = self.app.test_client()
 
-    # def tearDown(self):
-    #     db.session.remove()
-    #     db.drop_all()
-    #     self.app_context.pop()
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()

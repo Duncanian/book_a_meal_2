@@ -31,7 +31,7 @@ class MealMan(Resource):
 			meal_data['meal_price'] = meal.meal_price
 			meal_data['meal_category'] = meal.meal_category
 			meal_data['meal_day'] = meal.meal_day
-			output.append(user_data)
+			output.append(meal_data)
 
 		return {"status": "success", "data": output}, 200
 

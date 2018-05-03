@@ -6,22 +6,24 @@ from flask_restful import Resource
 import jwt
 from os import getenv
 import datetime
+from .token import token_required
 
 class AuthCreate(Resource):
     def post(self):
-        if request.json:
-            if request.json['password'] == '' or request.json['username'] == '':
-                return jsonify({'message' : 'Please enter all the details'})
+        post_data = request.get_json(force=True)
 
-            if not isinstance(request.json['password'], str) or not isinstance(request.json['username'], str):
-                return jsonify({'message' : 'Please enter a string value for username and password'})
+        if post_data['password'] == '' or post_data['username'] == '':
+            return jsonify({'message' : 'Please enter all the details'})
 
-            hashed_password = generate_password_hash(request.json['password'], method='md5')
-            new_user = User(user_id = int(uuid.uuid4()), username = request.json['username'], 
-                password = hashed_password, admin=False)
-            db.session.add(new_user)
-            db.session.commit()
-            return jsonify({'message' : 'New user created!'})
+        if not isinstance(post_data['password'], str) or not isinstance(post_data['username'], str):
+            return jsonify({'message' : 'Please enter a string value for username and password'})
+
+        hashed_password = generate_password_hash(post_data['password'], method='md5')
+        new_user = User(user_id = int(uuid.uuid4()), username = post_data['username'], 
+            password = hashed_password, admin=False)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'message' : 'New user created!'})
 
         # hashed_password = generate_password_hash(request.form.get('password'), method='md5')
         # new_user = User(user_id = int(uuid.uuid4()), username = request.form.get('username'), password = hashed_password, admin=False)
@@ -29,7 +31,8 @@ class AuthCreate(Resource):
         # db.session.commit()
         # return jsonify({'message' : 'New user created!'})
 
-    def get(self):
+    @token_required
+    def get(self, active_user):
     	users = User.query.all()
     	output = []
     	for user in users:
@@ -44,19 +47,21 @@ class AuthCreate(Resource):
 class AuthLogin(Resource):
     """docstring for AuthLogin"""
     def post(self):
-        data = request.get_json()
-        if data['password'] == '' or data['username'] == '':
+        post_data = request.get_json(force=True)
+
+        if post_data['password'] == '' or post_data['username'] == '':
             return jsonify({'message' : 'Please enter all the details'})
 
-        if not isinstance(data['password'], str) or not isinstance(data['username'], str):
+        if not isinstance(post_data['password'], str) or not isinstance(post_data['username'], str):
             return jsonify({'message' : 'Please enter a string value for username and password'})
 
-        user = User.query.filter_by(username = data['username']).first()
+        user = User.query.filter_by(username = post_data['username']).first()
 
         if not user:
             return jsonify({'message' : 'Please sign up then login'})
-        if check_password_hash(user.password, data['password']):
-            token = jwt.encode({"user_id" : user.user_id, "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, getenv('SECRET_KEY'))
+
+        if check_password_hash(user.password, post_data['password']):
+            token = jwt.encode({"user_id" : user.user_id, "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, getenv('SECRET_KEY'), algorithm='HS256')
             return jsonify({"token" : token.decode('UTF-8')})
         
 
@@ -76,18 +81,18 @@ class MenuOrders(Resource):
         return {"status": "success", "data": output}, 200
 
     def post(self):
-        meal = Menu.query.filter_by(meal_name=request.json['order_name']).first()
+        meal = Menu.query.filter_by(menu_name=request.json['order_name']).first()
 
         if not meal:
             return jsonify({"message" : "The meal was not found in menu"})
 
-        order = Orders.query.filter_by(order_name=meal.meal_name).first()
+        order = Orders.query.filter_by(order_name=meal.menu_name).first()
 
         if order:
             return jsonify({"message" : "The order exist!"})
 
-        new_order = Orders(order_id = meal.meal_id, order_name = request.json['order_name'], order_price = request.json['order_price'],
-            order_category = request.json['order_category'], order_day = request.json['order_day'], order_qty=1, order_user = request.json['user'])
+        new_order = Orders(order_id = meal.menu_id, order_name = request.json['order_name'], order_price = request.json['order_price'],
+            order_category = request.json['order_category'], order_day = request.json['order_day'], order_qty=1, order_user = request.json['order_user'])
         #Add name from jwt
         db.session.add(new_order)
         db.session.commit()
