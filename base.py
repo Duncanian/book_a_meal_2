@@ -3,6 +3,7 @@ from flask_restful import Api
 from app import Hello
 from views.user_res import AuthCreate, AuthLogin, MenuOrders
 from views.cater_res import MealMan, Menu, OrdersAll
+from config import config
 
 def create_app(config_filename):
     app = Flask(__name__)
@@ -24,3 +25,5 @@ def create_app(config_filename):
     	                '/api/v1/orders/<int:order_id>', '/api/v1/orders/<int:order_id>')
 
     return app
+
+app = create_app(config['development'])
