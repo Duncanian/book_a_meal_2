@@ -47,7 +47,7 @@ class TestMeals(GroundTests):
         self.modify_meal = {
             "meal_name": "kuku with rice",
             "meal_price": 280,
-            "meal_category"   : "lunch",
+            "meal_category" : "lunch",
             "meal_day": "tuesday"
         }
 
@@ -117,12 +117,13 @@ class TestMeals(GroundTests):
     #     data = json.loads(response.data)
     #     self.assertIsInstance(data['data'], list, msg='Incorrect output type')
 
-    # '''def test_meal_exists(self):
-    #     '''Check if meal exists in db'''
-    #     response = self.tester.put('/api/v1/meals/24567876543234567876543', data=json.dumps(self.modify_meal), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], "The meal was not found")
+    def test_meal_exists(self):
+        '''Check if meal exists in db'''
+        response = self.tester.put('/api/v1/meals/24567876543234567876543', data=json.dumps(self.modify_meal), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        # data = json.loads(response.data)
+        # print(data)
+        #self.assertEqual(data['message'], "The meal was not found")
 
     # def test_empty_inputs_in_put(self):
     #     '''Check if some inputs are empty'''
