@@ -80,7 +80,7 @@ class TestAuth(GroundTests):
         self.assertEqual(data['message'], 'New user created!')
 
     def test_users(self):
-        response = self.tester.get('/api/v1/users')
+        response = self.tester.get('/api/v1/users', headers=self.headers)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertIsInstance(data['data'], list, msg='Incorrect output type')

@@ -10,14 +10,14 @@ def token_required(f):
 	def decorated(*args, **kwargs):
 		token = None
 
-		if 'X-Token' in request.headers:
-			token = request.headers['X-Token']
+		if 'Authorization' in request.headers:
+			token = request.headers['Authorization']
 
 		if not token:
 			return { "message" : "Token is missing!" }, 401
 		
 		try:
-			data = jwt.decode(token, getenv('SECRET_KEY'), algorithm='HS256')
+			data = jwt.decode(token, getenv('SECRET_KEY'))
 			active_user = User.query.filter_by(user_id = data['user_id']).first()
 		except:
 			return {"message":"Token is Invalid!"}, 401
@@ -32,14 +32,14 @@ def admin_only(f):
 	def decorated(*args, **kwargs):
 		token = None
 
-		if 'X-Token' in request.headers:
-			token = request.headers['X-Token']
+		if 'Authorization' in request.headers:
+			token = request.headers['Authorization']
 
 		if not token:
 			return { "message" : "Token is missing!" }, 401
 		
 		try:
-			data = jwt.decode(token, getenv('SECRET_KEY'), algorithm='HS256')
+			data = jwt.decode(token, getenv('SECRET_KEY'))
 			active_user = User.query.filter_by(user_id = data['user_id']).first()
 		except:
 			return {"message":"Token is Invalid!"}, 401

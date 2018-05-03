@@ -4,6 +4,7 @@ from base import create_app
 from config import config
 from models.models import User, Orders, Menu, db, Meals
 from werkzeug.security import generate_password_hash
+import json
 
 class GroundTests(TestCase):
     '''The Founding tests for the DB'''
@@ -61,6 +62,22 @@ class GroundTests(TestCase):
         db.session.commit()
 
         self.tester = self.app.test_client()
+
+        self.u_data = {
+            "username": "ian",
+            "password": "#2345"
+        }
+
+        response = self.tester.post('/api/v1/auth/login', data=json.dumps(self.u_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.token = data['token']
+
+        self.headers = {
+            'Authorization': self.token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
 
     def tearDown(self):
         db.session.remove()
