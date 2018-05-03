@@ -6,17 +6,18 @@ from flask_restful import Resource
 class MealMan(Resource):
 	"""docstring for Meal_man"""
 	def post(self):
-		if request.json['meal_name'] == '' or request.json['meal_price'] == '':
+		post_data = request.get_json(force=True)
+		if post_data['meal_name'] == '' or post_data['meal_price'] == '':
 			return jsonify({'message' : 'Please enter all the details'})
 
-		if not isinstance(request.json['meal_name'], str):
+		if not isinstance(post_data['meal_name'], str):
 			return jsonify({'message' : 'Please enter a string value for meal'})
 
-		if not isinstance(request.json['meal_price'], int):
+		if not isinstance(post_data['meal_price'], int):
 			return jsonify({'message' : 'Price should be a number'})
 
-		new_meal = Meals(meal_id = int(uuid.uuid4()), meal_name = request.json['meal_name'], meal_price = request.json['meal_price'],
-			meal_category = request.json['meal_category'], meal_day = request.json['meal_day'])
+		new_meal = Meals(meal_id = str(uuid.uuid4()), meal_name = post_data['meal_name'], meal_price = post_data['meal_price'],
+			meal_category = post_data['meal_category'], meal_day = post_data['meal_day'])
 		db.session.add(new_meal)
 		db.session.commit()
 		return jsonify({'message' : 'New meal added!'})

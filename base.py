@@ -18,7 +18,7 @@ def create_app(config_filename):
     api.add_resource(AuthCreate, '/api/v1/auth/signup', '/api/v1/users')
     api.add_resource(AuthLogin, '/api/v1/auth/login')
     api.add_resource(MealMan, '/api/v1/meals/', '/api/v1/meals/',
-    	                '/api/v1/meals/<int:meal_id>', '/api/v1/meals/<int:meal_id>')
+    	                '/api/v1/meals/<string:meal_id>', '/api/v1/meals/<string:meal_id>')
     api.add_resource(Menu, '/api/v1/menu/')
     api.add_resource(OrdersAll, '/api/v1/orders')
     api.add_resource(MenuOrders, '/api/v1/menu/', '/api/v1/orders',

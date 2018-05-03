@@ -9,7 +9,7 @@ class TestAuth(GroundTests):
         GroundTests.setUp(self)
         #Register details
         self.registerdata = {
-            "user_id" : int(uuid.uuid4()),
+            "user_id" : str(uuid.uuid4()),
             "username": "three",
             "password": "#2345",
             "admin"   : False
@@ -17,7 +17,7 @@ class TestAuth(GroundTests):
 
         #A missing detail in register details
         self.reg_miss_data = {
-            "user_id" : int(uuid.uuid4()),
+            "user_id" : str(uuid.uuid4()),
             "username": "",
             "password": "#2345",
             "admin" : False
@@ -25,7 +25,7 @@ class TestAuth(GroundTests):
 
         #Wrong inputs for register
         self.reg_bad_data = {
-            "user_id" : int(uuid.uuid4()),
+            "user_id" : str(uuid.uuid4()),
             "username": 123,
             "password": 45,
             "admin" : False
@@ -79,11 +79,11 @@ class TestAuth(GroundTests):
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'New user created!')
 
-    # def test_users(self):
-    #     response = self.tester.get('/api/v1/users')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertIsInstance(data['data'], list, msg='Incorrect output type')
+    def test_users(self):
+        response = self.tester.get('/api/v1/users')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertIsInstance(data['data'], list, msg='Incorrect output type')
 
     def test_register_blank(self):
         '''Test for error when an input is left blank'''

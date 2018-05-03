@@ -10,21 +10,19 @@ def token_required(f):
 	def decorated(*args, **kwargs):
 		token = None
 
-		if 'x-access-token' in request.headers:
-			token = request.headers['x-access-token']
+		if 'X-Token' in request.headers:
+			token = request.headers['X-Token']
 
 		if not token:
-			return jsonify({ "message" : "Token is missing!" }), 401
+			return { "message" : "Token is missing!" }, 401
 		
 		try:
-			data = jwt.decode(token, 'Super secret')
-			#active_user = User.query.filter_by(user_id = data['user_id']).first()
-			dat = json.dumps(data)
-			ide = dat['user_id']
+			data = jwt.decode(token, getenv('SECRET_KEY'), algorithm='HS256')
+			active_user = User.query.filter_by(user_id = data['user_id']).first()
 		except:
-			return jsonify({"message":"Token is Invalid!"}), 400
+			return {"message":"Token is Invalid!"}, 401
 
-		return f(ide, *args, **kwargs)
+		return f(active_user, *args, **kwargs)
 
 	return decorated
 
@@ -34,22 +32,21 @@ def admin_only(f):
 	def decorated(*args, **kwargs):
 		token = None
 
-		if 'Authorization' in request.headers:
-			token = request.headers['Authorization']
+		if 'X-Token' in request.headers:
+			token = request.headers['X-Token']
 
-		if token is None:
-			return jsonify({ "message" : "Token is missing!" }), 401
+		if not token:
+			return { "message" : "Token is missing!" }, 401
 		
 		try:
-			data = jwt.decode(token, getenv('SECRET_KEY'))
-			#active_user = User.query.filter_by(user_id = data['user_id']).first()
-			admin_access = data['admin']
+			data = jwt.decode(token, getenv('SECRET_KEY'), algorithm='HS256')
+			active_user = User.query.filter_by(user_id = data['user_id']).first()
 		except:
-			return jsonify({"message":"Token is Invalid!"}), 400
+			return {"message":"Token is Invalid!"}, 401
 
-		if not admin_access:
-			return jsonify({"message":"You don't have permission to perform this action"})
+		if not active_user.admin:
+			return "You are not the admin"
 
-		return f(admin_access, *args, **kwargs)
+		return f(active_user, *args, **kwargs)
 
 	return decorated

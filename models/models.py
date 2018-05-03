@@ -26,7 +26,7 @@ class Meals(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
 	meal_id = db.Column(db.String(50), unique = True)
 	meal_name = db.Column(db.String(50))
-	meal_price = db.Column(db.Float)
+	meal_price = db.Column(db.Integer)
 	meal_category = db.Column(db.String(50))
 	meal_day = db.Column(db.String(50))
 
@@ -46,7 +46,7 @@ class Menu(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
 	menu_id = db.Column(db.String(50), unique = True)
 	menu_name = db.Column(db.String(50))
-	menu_price = db.Column(db.Float)
+	menu_price = db.Column(db.Integer)
 	menu_category = db.Column(db.String(50))
 	menu_day = db.Column(db.String(50))
 
@@ -66,7 +66,7 @@ class Orders(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
 	order_id = db.Column(db.String(50), unique = True)
 	order_name = db.Column(db.String(50))
-	order_price = db.Column(db.Float)
+	order_price = db.Column(db.Integer)
 	order_category = db.Column(db.String(50))
 	order_day = db.Column(db.String(50))
 	order_qty = db.Column(db.Integer)

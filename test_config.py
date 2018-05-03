@@ -5,7 +5,7 @@ from config import config
 from models.models import User, Orders, Menu, db, Meals
 from werkzeug.security import generate_password_hash
 
-class GroundTests():
+class GroundTests(TestCase):
     '''The Founding tests for the DB'''
     def setUp(self):
         '''The first step for it's run'''

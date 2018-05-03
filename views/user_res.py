@@ -6,7 +6,7 @@ from flask_restful import Resource
 import jwt
 from os import getenv
 import datetime
-from .token import token_required
+from auth.token import token_required, admin_only
 
 class AuthCreate(Resource):
     def post(self):
@@ -19,7 +19,7 @@ class AuthCreate(Resource):
             return jsonify({'message' : 'Please enter a string value for username and password'})
 
         hashed_password = generate_password_hash(post_data['password'], method='md5')
-        new_user = User(user_id = int(uuid.uuid4()), username = post_data['username'], 
+        new_user = User(user_id = str(uuid.uuid4()), username = post_data['username'], 
             password = hashed_password, admin=False)
         db.session.add(new_user)
         db.session.commit()
@@ -31,7 +31,7 @@ class AuthCreate(Resource):
         # db.session.commit()
         # return jsonify({'message' : 'New user created!'})
 
-    @token_required
+    @admin_only
     def get(self, active_user):
     	users = User.query.all()
     	output = []
@@ -63,6 +63,7 @@ class AuthLogin(Resource):
         if check_password_hash(user.password, post_data['password']):
             token = jwt.encode({"user_id" : user.user_id, "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, getenv('SECRET_KEY'), algorithm='HS256')
             return jsonify({"token" : token.decode('UTF-8')})
+        return {"message":"wrong password, please try again"}
         
 
 class MenuOrders(Resource):
