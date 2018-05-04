@@ -1,8 +1,10 @@
 from unittest import TestCase
 import uuid
-from .base import create_app
-from .config import config
+from book_a_meal_2.base import create_app
+from book_a_meal_2.config import config
 from models.models import User, Orders, Menu, db, Meals
+from werkzeug.security import generate_password_hash
+import json
 
 class GroundTests(TestCase):
     '''The Founding tests for the DB'''
@@ -15,18 +17,19 @@ class GroundTests(TestCase):
         db.create_all()
 
         #Create a new user
-        self.new_user = User(user_id = int(uuid.uuid4()), username="ian", password="#2345", admin=True)
+        hashed_password = generate_password_hash("#2345", method='md5')
+        self.new_user = User(user_id = str(uuid.uuid4()), username="ian", password=hashed_password, admin=True)
         db.session.add(self.new_user)
         db.session.commit()
 
         #Add new meal
-        self.new_meal = Meals(meal_id = int(uuid.uuid4()), meal_name = "Rice with beef", meal_price = 200,
+        self.new_meal = Meals(meal_id = str(uuid.uuid4()), meal_name = "Rice with beef", meal_price = 200,
             meal_category = "lunch", meal_day = 'monday')
         db.session.add(self.new_meal)
         db.session.commit()
 
         #Add new meal 2
-        self.new_meal = Meals(meal_id = int(uuid.uuid4()), meal_name = "Pasta with beef", meal_price = 300,
+        self.new_meal = Meals(meal_id = str(uuid.uuid4()), meal_name = "Pasta with beef", meal_price = 300,
             meal_category = "lunch", meal_day = 'tuesday')
         db.session.add(self.new_meal)
         db.session.commit()
@@ -46,7 +49,7 @@ class GroundTests(TestCase):
         db.session.commit()
 
         #Add new meal 2
-        self.new_meal2 = Meals(meal_id = int(uuid.uuid4()), meal_name = "Milk with Bread", meal_price = 70,
+        self.new_meal2 = Meals(meal_id = str(uuid.uuid4()), meal_name = "Milk with Bread", meal_price = 70,
             meal_category = "breakfast", meal_day = 'tuesday')
         db.session.add(self.new_meal2)
         db.session.commit()
@@ -60,7 +63,24 @@ class GroundTests(TestCase):
 
         self.tester = self.app.test_client()
 
-    # def tearDown(self):
-    #     db.session.remove()
-    #     db.drop_all()
-    #     self.app_context.pop()
+        self.u_data = {
+            "username": "ian",
+            "password": "#2345"
+        }
+
+        response = self.tester.post('/api/v2/auth/login', data=json.dumps(self.u_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.token = data['token']
+
+        self.headers = {
+            'Authorization': self.token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
