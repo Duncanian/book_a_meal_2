@@ -1,11 +1,12 @@
-from flask import request
 import uuid
 from os import getenv
-import jwt
-from models.models import Meals, Orders, Menu, db
-from flask_restful import Resource
-from auth.token import token_required, admin_only
 import datetime
+import jwt
+from flask import request
+from flask_restful import Resource
+from models.models import Meals, Orders, Menu, db
+from auth.token import token_required, admin_only
+
 
 class MealMan(Resource):
 	"""docstring for Meal_man"""

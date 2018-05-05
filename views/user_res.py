@@ -1,11 +1,11 @@
-from flask import request
-from werkzeug.security import generate_password_hash, check_password_hash
-import uuid
-from models.models import User, Orders, Menu, db, Meals
-from flask_restful import Resource
-import jwt
 from os import getenv
 import datetime
+import uuid
+from flask import request
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_restful import Resource
+import jwt
+from models.models import User, Orders, Menu, db, Meals
 from auth.token import token_required, admin_only
 
 class AuthCreate(Resource):
