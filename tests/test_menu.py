@@ -1,144 +1,150 @@
 import json
 import unittest
-import uuid
 from .test_config import GroundTests
-from models.models import Orders
+
 
 class TestMeals(GroundTests):
     def setUp(self):
         GroundTests.setUp(self)
 
-        #Add meal to menu
+        # Add meals to menu
         self.add_menu_data = {
-            "menu_name": "Pasta with beef",
-            "menu_price": 300,
-            "menu_category"   : "lunch",
-            "menu_day": "tuesday"
+            "meal_ids": [1, 2, 3],
+            "menu_name": "Labour"
         }
 
-        #Add none existing meal to menu
-        self.add_bad_data = {
-            "menu_name": "Chapatti with Beef",
-            "menu_price": 250,
-            "menu_category"   : "dinner",
-            "menu_day": "monday"
+        # Add none existing meal to menu
+        self.wrong_data = {
+            "meal_ids": [8, 6, 5],
+            "menu_name": "Labour"
         }
 
-        # Add non-existing data to order
-        self.none_order = {
-            "order_name": "Chapatti with Beef",
-            "order_price": 250,
-            "order_category"   : "dinner",
-            "order_day": "monday",
-            "order_qty" : 1,
-            "order_user" : "ian"
+        # Add empty meal ids to menu
+        self.empty_ids = {
+            "meal_ids": [],
+            "menu_name": "Labour"
         }
 
-        #Add existing order in orders to order
-        self.existing_order = {
-            "order_name": "Rice with beef",
-            "order_price": 200,
-            "order_category"   : "lunch",
-            "order_day": "monday",
-            "order_qty" : 1,
-            "order_user" : "ian"
+        # Add wrong input type to menu
+        self.wrong_input_data = {
+            "meal_ids": "wrong",
+            "menu_name": "Labour"
         }
 
-        #Add new order to orders
-        self.newest_order = {
-            "order_name": "Milk with Bread",
-            "order_price": 70,
-            "order_category"   : "breakfast",
-            "order_day": "tuesday",
-            "order_qty" : 1,
-            "order_user" : "ian"
+        # Add empty menu name
+        self.empty_name = {
+            "meal_ids": [1, 2, 3],
+            "menu_name": ""
         }
 
-        self.avail_order = Orders.query.filter_by(order_name="Rice with beef").first()
-
-        self.qty = {
-            "order_qty" : 3
+        # Add wrong input type to menu name
+        self.wrong_input_name = {
+            "meal_ids": [1, 2, 3],
+            "menu_name": 12
         }
 
-        # response = self.client.post(self.login_url, data=self.data)
-        # self.token = json.loads(response.data)["token"]
-        # self.headers = {
-        #     'Authorization': 'Bearer ' + self.token,
-        #     'Content-Type': 'application/json',
-        #     'Accept': 'application/json',
-        # }
+        # Add spaces in menu name
+        self.spaces_name = {
+            "meal_ids": [1, 2, 3],
+            "menu_name": "Labour     "
+        }
+
+        # Add different inputs in meal ids list
+        self.meal_ids_test = {
+            "meal_ids": [1, 2, '3'],
+            "menu_name": "Labour"
+        }
+
     def tearDown(self):
         GroundTests.tearDown(self)
 
-    def test_meal_existence(self):
-        '''Check if meal exists'''
-        response = self.tester.post('/api/v2/menu/', data=json.dumps(self.add_bad_data), headers=self.headers)
+    def test_meal_empty_list(self):
+        '''Check if meal ids are empty'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.empty_ids), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], "Please enter an id to add your meals to the menu")
+
+    def test_wrong_input_type(self):
+        '''Check if meal ids are empty'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.wrong_input_data), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], "Please enter list id values for meals")
+
+    def test_meal_ids_input_types(self):
+        '''Check if meal ids should only be integers'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.meal_ids_test), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], "List values should only be in numbers")
+
+    def test_if_meal_doesnt_exists(self):
+        '''Check if meal is not available'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.wrong_data), headers=self.headers)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertEqual(data['message'], "The meal was not found")
 
-    # def test_meal_added_to_menu(self):
-    #     '''Add meal successfully to menu'''
-    #     response = self.tester.post('/api/v2/menu/', data=json.dumps(self.add_menu_data), content_type='application/json')
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], 'New meal added to the menu!')
+    def test_empty_menu_name(self):
+        '''Check if menu name is empty'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.empty_name), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], "Please enter the Menu name")
 
-    def test_get_menu(self):
-        '''Get the menu for the day'''
+    def test_wrong_input_menu_name(self):
+        '''Check for wrong input other than string'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.wrong_input_name), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], "Please enter a string value for Menu name")
+
+    def test_spaces_in_menu_name(self):
+        '''Check for spaces in meal name'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.spaces_name), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], "Menu name should not have spaces!")
+
+    def test_add_menu_success(self):
+        '''Check if the menu is created successfully'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['message'], "New meal added to the menu!")
+
+    def test_menu_exists(self):
+        '''Check if the menu exists'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+
+        response1 = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
+        self.assertEqual(response1.status_code, 200)
+        data = json.loads(response1.data)
+        self.assertEqual(data['message'], "Menu already available!")
+
+    def test_user_views(self):
+        '''Check if user can view the menu'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+
         response = self.tester.get('/api/v2/menu/', headers=self.headers)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertIsInstance(data['data'], list, msg='Incorrect output type')
 
-    def test_meal_in_menu(self):
-        '''Check if meal is in menu before order'''
-        response = self.tester.post('/api/v2/orders', data=json.dumps(self.none_order), headers=self.headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], "The meal was not found in menu")
-
-    def test_meal_already_ordered(self):
-        '''Check if order exists'''
-        response = self.tester.post('/api/v2/orders', data=json.dumps(self.existing_order), headers=self.headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], "The order exist!")
-
-    def test_meal_order_success(self):
-        '''Add order successfully'''
-        response = self.tester.post('/api/v2/orders', data=json.dumps(self.newest_order), headers=self.headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], 'Your order has been placed!')
-
-    def test_none_existing_order_before_edit(self):
-        '''Check if meal exists in db'''
-        response = self.tester.put('/api/v2/orders/24567876543234567876543', data=json.dumps(self.qty), headers=self.headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], "The order was not found")
-
-    def test_edit_success(self):
-        '''Edit existing meal'''
-        response = self.tester.put('/api/v2/orders/'+str(self.avail_order.order_id), data=json.dumps(self.qty), headers=self.headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['data'], 'Order modified!')
-
-    def test_order_present_before_deleting(self):
-        '''Check presence of order to be deleted'''
-        response = self.tester.delete('/api/v2/orders/24567876543234567876543', headers=self.headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], "The order was not found")
-
-    def test_order_delete_success(self):
-        '''Check for successful deletion of order'''
-        response = self.tester.delete('/api/v2/orders/'+str(self.avail_order.order_id), headers=self.headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], "The order has been removed")
 
 if __name__ == "__main__":
     unittest.main()
