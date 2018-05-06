@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Duncanian/book_a_meal_2.svg?branch=feature)](https://travis-ci.org/Duncanian/book_a_meal_2)
+
 ### Book-A-Meal API
 
 #### Description
