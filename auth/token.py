@@ -1,9 +1,9 @@
 from functools import wraps
+import json
 from os import getenv
-from models.models import User
 from flask import request, jsonify
 import jwt
-import json
+from models.models import User
 
 def token_required(f):
 	@wraps(f)
