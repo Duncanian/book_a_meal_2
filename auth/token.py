@@ -5,46 +5,47 @@ from flask import request, jsonify
 import jwt
 from models.models import User
 
+
 def token_required(f):
-	@wraps(f)
-	def decorated(*args, **kwargs):
-		token = None
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
 
-		if 'Authorization' in request.headers:
-			token = request.headers['Authorization']
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
 
-		if not token:
-			return { "message" : "Token is missing!" }, 401
-		
-		try:
-			active_user = jwt.decode(token, getenv('SECRET_KEY'))
-		except:
-			return {"message":"Token is Invalid!"}, 401
+        if not token:
+            return {"message": "Token is missing!"}, 401
 
-		return f(active_user, *args, **kwargs)
+        try:
+            active_user = jwt.decode(token, getenv('SECRET_KEY'))
+        except:
+            return {"message": "Token is Invalid!"}, 400
 
-	return decorated
+        return f(active_user, *args, **kwargs)
+
+    return decorated
 
 
 def admin_only(f):
-	@wraps(f)
-	def decorated(*args, **kwargs):
-		token = None
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
 
-		if 'Authorization' in request.headers:
-			token = request.headers['Authorization']
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
 
-		if not token:
-			return { "message" : "Token is missing!" }, 401
-		
-		try:
-			active_user = jwt.decode(token, getenv('SECRET_KEY'))
-		except:
-			return {"message":"Token is Invalid!"}, 401
+        if not token:
+            return {"message": "Token is missing!"}, 401
 
-		if not active_user['admin']:
-			return "You are not the admin"
+        try:
+            active_user = jwt.decode(token, getenv('SECRET_KEY'))
+        except:
+            return {"message": "Token is Invalid!"}, 400
 
-		return f(active_user, *args, **kwargs)
+        if not active_user['admin']:
+            return {"message": "You are not the admin"}, 401
 
-	return decorated
+        return f(active_user, *args, **kwargs)
+
+    return decorated
