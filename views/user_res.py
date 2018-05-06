@@ -78,7 +78,7 @@ class MenuOrders(Resource):
     @token_required
     def get(self, active_user):
         #date = datetime.datetime.utcnow().date()
-        menu = Menu.query.filter_by(id=1).first()
+        menu = Menu.query.order_by(Menu.id.desc()).first()
         output = []
         for meal in menu.meals:
             menu_data = {}
@@ -108,7 +108,7 @@ class MenuOrders(Resource):
             token = request.headers['Authorization']
         user_det = jwt.decode(token, getenv('SECRET_KEY'))
 
-        menu = Menu.query.filter_by(id=1).first()
+        menu = Menu.query.order_by(Menu.id.desc()).first()
         meal_list = []
         output = []
         for meal in menu.meals:
