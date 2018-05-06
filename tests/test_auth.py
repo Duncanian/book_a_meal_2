@@ -8,46 +8,57 @@ from models.models import User
 class TestAuth(GroundTests):
     def setUp(self):
         GroundTests.setUp(self)
-        # Register details
-        self.registerdata = {
+        # No input field
+        self.no_field = {
+
+        }
+
+        # One field
+        self.one_field = {
+            "username": "three"
+        }
+
+        # More than two fields
+        self.more_fields = {
             "username": "three",
             "password": "#2345",
             "admin": False
         }
 
+        # Register details
+        self.registerdata = {
+            "username": "three",
+            "password": "#2345"
+        }
+
         # A missing detail in register details
         self.reg_miss_data = {
             "username": "",
-            "password": "#2345",
-            "admin": False
+            "password": "#2345"
         }
 
         # Wrong inputs for register
         self.reg_bad_data = {
             "username": 123,
-            "password": 45,
-            "admin": False
+            "password": 45
         }
 
         # Username having spaces for register
         self.reg_space_data = {
             "username": "       ",
-            "password": "sdfb ",
-            "admin": False
+            "password": "sdfb "
         }
 
         # Password having less than 5 chars register
         self.reg_less_data = {
             "username": "jbnjn",
-            "password": "sdf",
-            "admin": False
+            "password": "sdf"
         }
 
         # Password having more than 10 chars register
         self.reg_more_data = {
             "username": "wuytg",
-            "password": "jbnjngygvvsgshsjsbsudbduxh",
-            "admin": False
+            "password": "jbnjngygvvsgshsjsbsudbduxh"
         }
 
         # Login details
@@ -83,11 +94,34 @@ class TestAuth(GroundTests):
     def tearDown(self):
         GroundTests.tearDown(self)
 
+    def test_wrong_fields_in_signup(self):
+        '''Test if one enters no field, one field or more than two fields'''
+        response = self.tester.post(
+            '/api/v2/auth/signup', data=json.dumps(self.no_field), content_type='application/json')
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Username and Password fields')
+
+        response = self.tester.post(
+            '/api/v2/auth/signup', data=json.dumps(self.one_field), content_type='application/json')
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Username and Password fields')
+
+        response = self.tester.post(
+            '/api/v2/auth/signup', data=json.dumps(self.more_fields), content_type='application/json')
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Username and Password fields')
+
     def test_register(self):
         '''Test for successful register of a user'''
         response = self.tester.post(
             '/api/v2/auth/signup', data=json.dumps(self.registerdata), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'New user created!')
 
@@ -95,7 +129,7 @@ class TestAuth(GroundTests):
         '''Test if the user has an account already'''
         response = self.tester.post(
             '/api/v2/auth/signup', data=json.dumps(self.u_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'Sorry, username already taken!')
 
@@ -109,7 +143,7 @@ class TestAuth(GroundTests):
         '''Test for error when an input is left blank'''
         response = self.tester.post(
             '/api/v2/auth/signup', data=json.dumps(self.reg_miss_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'Please enter all the details')
 
@@ -117,7 +151,7 @@ class TestAuth(GroundTests):
         '''Test for error when an input is not a string'''
         response = self.tester.post(
             '/api/v2/auth/signup', data=json.dumps(self.reg_bad_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(
             data['message'], 'Please enter a string value for username and password')
@@ -126,7 +160,7 @@ class TestAuth(GroundTests):
         '''Test for error when username has spaces'''
         response = self.tester.post(
             '/api/v2/auth/signup', data=json.dumps(self.reg_space_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'Username should not have spaces!')
 
@@ -134,29 +168,54 @@ class TestAuth(GroundTests):
         '''Test if password to be set is less than 5  char'''
         response = self.tester.post(
             '/api/v2/auth/signup', data=json.dumps(self.reg_less_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(
             data['message'], 'Password should be more than 5 characters')
 
     def test_register_more_chars(self):
         '''Test if password to be set is more than 10  char'''
-        response = self.tester.post('/api/v2/auth/signup', data=json.dumps(self.reg_more_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        response = self.tester.post(
+            '/api/v2/auth/signup', data=json.dumps(self.reg_more_data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
-        self.assertEqual(data['message'], 'Password should be less than 10 characters')
+        self.assertEqual(
+            data['message'], 'Password should be less than 10 characters')
+
+    def test_wrong_fields_in_login(self):
+        '''Test if one enters no field, one field or more than two fields'''
+        response = self.tester.post(
+            '/api/v2/auth/login', data=json.dumps(self.no_field), content_type='application/json')
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Username and Password fields')
+
+        response = self.tester.post(
+            '/api/v2/auth/login', data=json.dumps(self.one_field), content_type='application/json')
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Username and Password fields')
+
+        response = self.tester.post(
+            '/api/v2/auth/login', data=json.dumps(self.more_fields), content_type='application/json')
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Username and Password fields')
 
     def test_login_success(self):
         response = self.tester.post(
             '/api/v2/auth/login', data=json.dumps(self.u_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         data = json.loads(response.data)
         self.assertIsInstance(data['token'], str, msg='Incorrect output type')
 
     def test_login_blank(self):
         response = self.tester.post(
             '/api/v2/auth/login', data=json.dumps(self.u_emt_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'Please enter all the details')
 
@@ -164,7 +223,7 @@ class TestAuth(GroundTests):
         '''Test for error when an input is not a string'''
         response = self.tester.post(
             '/api/v2/auth/login', data=json.dumps(self.u_bad_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(
             data['message'], 'Please enter a string value for username and password')
@@ -172,14 +231,14 @@ class TestAuth(GroundTests):
     def test_login_gone_wrong(self):
         response = self.tester.post(
             '/api/v2/auth/login', data=json.dumps(self.u_err_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'Please sign up then login')
 
     def test_wrong_pass_login(self):
         response = self.tester.post(
             '/api/v2/auth/login', data=json.dumps(self.u_wrong), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 401)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'wrong password, please try again')
 
