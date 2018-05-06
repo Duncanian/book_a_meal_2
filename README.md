@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/Duncanian/book_a_meal_2.svg?branch=feature)](https://travis-ci.org/Duncanian/book_a_meal_2)
+[![Coverage Status](https://coveralls.io/repos/github/Duncanian/book_a_meal_2/badge.svg?branch=feature)](https://coveralls.io/github/Duncanian/book_a_meal_2?branch=feature)
 
 ### Book-A-Meal API
 
