@@ -47,6 +47,9 @@ class AuthCreate(Resource):
     @admin_only
     def get(self, active_user):
         users = User.query.all()
+
+        if not users:
+            return {"message":"No users found"}, 404
         output = []
         for user in users:
             user_data = {}
@@ -91,6 +94,9 @@ class MenuOrders(Resource):
     def get(self, active_user):
         #date = datetime.datetime.utcnow().date()
         menu = Menu.query.order_by(Menu.id.desc()).first()
+
+        if not menu:
+            return {"message":"No menu set up for today"}, 404
         output = []
         for meal in menu.meals:
             menu_data = {}
@@ -103,12 +109,13 @@ class MenuOrders(Resource):
     @token_required
     def post(self, active_user):
         post_data = request.get_json(force=True)
+        date = datetime.datetime.utcnow().date()
 
-        # deadline = datetime.time(12, 0, 0).hour
-        # start = datetime.time(5, 0, 0).hour
-        # current_time = datetime.datetime.utcnow().time().hour
-        # if current_time > deadline or current_time < start:
-        #     return {"message" : "Orders take place between 8:00 am to 3:00 pm only"}
+        deadline = datetime.time(15, 0, 0).hour
+        start = datetime.time(5, 0, 0).hour
+        current_time = datetime.datetime.utcnow().time().hour
+        if current_time > deadline or current_time < start:
+            return {"message" : "Orders take place between 8:00 am to 3:00 pm only"}
 
         if len(post_data) == 0 or len(post_data) > 1:
             return {'message': 'Please ensure that you have only a Meal ids field'}, 404
@@ -122,6 +129,9 @@ class MenuOrders(Resource):
         for i in post_data['meal_ids']:
             if not isinstance(i, int):
                 return {"message": "List values should only be in numbers"}, 400
+
+            if i < 1:
+                return {'message': 'The id should not be 0 or a negative'}, 400
 
         meal_ids = post_data['meal_ids']
 
@@ -152,7 +162,7 @@ class MenuOrders(Resource):
             one_order = orders[0]
 
             order_ava = Orders.query.filter_by(
-                order_meal=one_order['meal_name']).first()
+                order_meal=one_order['meal_name'], order_date=str(date)).first()
             if order_ava:
                 return {'message': 'Sorry, the meal is already in your order'}, 400
 
@@ -168,7 +178,8 @@ class MenuOrders(Resource):
         # change qty then multiply it to get the price
 
         post_data = request.get_json(force=True)
-        # deadline = datetime.time(12, 0, 0).hour
+        deadline = datetime.time(15, 0, 0).hour
+        current_time = datetime.datetime.utcnow().time().hour
         date = datetime.datetime.utcnow().date()
         order = Orders.query.filter_by(
             id=order_id, order_date=str(date)).first()
@@ -179,14 +190,17 @@ class MenuOrders(Resource):
         if len(post_data) == 0 or len(post_data) > 1:
             return {'message': 'Please ensure that you have only a qty field'}, 404
 
-        # if order.order_time.hour > deadline:
-        #     return {"message" : "Your order has already expired, next time make a change before 3pm"}
+        if current_time > deadline:
+            return {"message" : "Your order has already expired, next time make a change before 3pm"}
 
         if not post_data['qty']:
             return {'message': 'Please enter the quantity you want to change to'}, 400
 
         if not isinstance(post_data['qty'], int):
             return {'message': 'Please enter a number value for quantity'}, 400
+
+        if post_data['qty'] < 1:
+            return {'message': 'Quantity should not be 0 or a negative'}, 400
 
         order.qty = post_data['qty']
         total = order.qty * order.order_price

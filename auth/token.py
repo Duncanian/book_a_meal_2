@@ -44,7 +44,7 @@ def admin_only(f):
             return {"message": "Token is Invalid!"}, 400
 
         if not active_user['admin']:
-            return {"message": "You are not the admin"}, 401
+            return {"message": "Sorry, you not authorized to use this endpoint"}, 401
 
         return f(active_user, *args, **kwargs)
 

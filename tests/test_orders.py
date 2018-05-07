@@ -49,6 +49,11 @@ class TestMeals(GroundTests):
             'qty': 3
         }
 
+        # Enter zero or negative qty
+        self.neg_qty = {
+            'qty': -3
+        }
+
         # Enter empty qty
         self.empty_qty = {
             'qty': ''
@@ -203,6 +208,19 @@ class TestMeals(GroundTests):
         data = json.loads(response.data)
         self.assertEqual(
             data['message'], "Please enter a number value for quantity")
+
+    def test_order_qty_negative_or_zero(self):
+        '''Check if qty is not an integer'''
+        response1 = self.tester.post(
+            '/api/v2/orders', data=json.dumps(self.add_order_data), headers=self.headers)
+        self.assertEqual(response1.status_code, 201)
+
+        response = self.tester.put(
+            '/api/v2/orders/1', data=json.dumps(self.neg_qty), headers=self.headers)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], "Quantity should not be 0 or a negative")
 
     def test_order_success(self):
         '''Check for a successful order'''

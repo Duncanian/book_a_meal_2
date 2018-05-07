@@ -31,6 +31,9 @@ class MealMan(Resource):
         if len(post_data['meal_name'].strip()) < len(post_data['meal_name']):
             return {'message': 'Meal name should not have spaces!'}, 400
 
+        if post_data['meal_price'] < 1:
+            return {'message': 'Meal Price should not be 0 or a negative'}, 400
+
         if meal:
             return {"message": "The meal already exists"}, 400
 
@@ -43,6 +46,9 @@ class MealMan(Resource):
     @admin_only
     def get(self, active_user):
         meals = Meals.query.all()
+
+        if not meals:
+            return {"message":"No meal available"}, 404
         output = []
         for meal in meals:
             meal_data = {}
@@ -75,6 +81,9 @@ class MealMan(Resource):
 
         if len(post_data['meal_name'].strip()) < len(post_data['meal_name']):
             return {'message': 'Meal name should not have spaces!'}, 400
+
+        if post_data['meal_price'] < 1:
+            return {'message': 'Meal Price should not be 0 or a negative'}, 400
 
         meal.meal_name = post_data['meal_name']
         meal.meal_price = post_data['meal_price']
@@ -111,6 +120,8 @@ class Menus(Resource):
         for i in post_data['meal_ids']:
             if not isinstance(i, int):
                 return {"message": "List values should only be in numbers"}, 400
+            if i < 1:
+                return {'message': 'The id should not be 0 or a negative'}, 400
 
         if not post_data['menu_name']:
             return {'message': 'Please enter the Menu name'}, 400
@@ -148,6 +159,9 @@ class OrdersAll(Resource):
     @admin_only
     def get(self, active_user):
         orders = Orders.query.all()
+
+        if not orders:
+            return {"message":"Orders unavailable"}
         output = []
         for order in orders:
             order_data = {}

@@ -30,7 +30,7 @@ Clone the repository:
 git clone https://github.com/Duncanian/book_a_meal_2.git
 ```
 
-Navigate to the cloned repo. 
+Navigate to the cloned repo.
 
 Ensure you have the following:
 
