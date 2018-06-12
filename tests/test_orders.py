@@ -69,6 +69,11 @@ class TestMeals(GroundTests):
             "meal_ids": [1, 2, '3']
         }
 
+        # Add negative meal ids 
+        self.meal_ids_neg = {
+            "meal_ids": [1, 2, -3]
+        }
+
         self.tester.post('/api/v2/menu/',
                          data=json.dumps(self.add_menu_data), headers=self.headers)
 
@@ -128,6 +133,15 @@ class TestMeals(GroundTests):
     #     self.assertEqual(response.status_code, 404)
     #     data = json.loads(response.data)
     #     self.assertEqual(data['message'], "Please enter food that is in the menu")
+
+    def test_meal_ids_neg_or_zero(self):
+        '''Check if meal ids are negative or zero'''
+        response = self.tester.post(
+            '/api/v2/orders/', data=json.dumps(self.meal_ids_neg), headers=self.headers)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], "The id should not be 0 or a negative")
 
     def test_success_order(self):
         '''Check for successful order'''

@@ -111,11 +111,11 @@ class MenuOrders(Resource):
         post_data = request.get_json(force=True)
         date = datetime.datetime.utcnow().date()
 
-        deadline = datetime.time(15, 0, 0).hour
-        start = datetime.time(5, 0, 0).hour
-        current_time = datetime.datetime.utcnow().time().hour
-        if current_time > deadline or current_time < start:
-            return {"message" : "Orders take place between 8:00 am to 3:00 pm only"}
+        # deadline = datetime.time(15, 0, 0).hour
+        # start = datetime.time(5, 0, 0).hour
+        # current_time = datetime.datetime.utcnow().time().hour
+        # if current_time > deadline or current_time < start:
+        #     return {"message" : "Orders take place between 8:00 am to 3:00 pm only"}
 
         if len(post_data) == 0 or len(post_data) > 1:
             return {'message': 'Please ensure that you have only a Meal ids field'}, 404

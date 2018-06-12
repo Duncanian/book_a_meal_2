@@ -72,6 +72,12 @@ class TestMeals(GroundTests):
             "menu_name": "Labour"
         }
 
+        # Add negative meal ids
+        self.neg_meal_ids = {
+            "meal_ids": [1, 2, -3],
+            "menu_name": "Labour"
+        }
+
     def tearDown(self):
         GroundTests.tearDown(self)
 
@@ -188,6 +194,15 @@ class TestMeals(GroundTests):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertIsInstance(data['data'], list, msg='Incorrect output type')
+
+    def test_meal_ids_negative(self):
+        '''Check if meal ids are empty'''
+        response = self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.neg_meal_ids), headers=self.headers)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], "The id should not be 0 or a negative")
 
 
 if __name__ == "__main__":

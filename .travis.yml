@@ -10,7 +10,7 @@ before_script:
   - source ./.travis.sh
   - psql -c 'create database testing_travis;' -U postgres
 
-script: 
+script:
   - python -m pytest --cov-report term-missing --cov=views
 
 after_success:
