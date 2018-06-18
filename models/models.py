@@ -2,12 +2,41 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
+class BaseModel(db.Model):
+    '''Base model to be inherited  by other modells'''
+    __abstract__ = True
 
-class User(db.Model):
+    def save(self):
+        '''save object'''
+        try:
+            db.session.add(self)
+            db.session.commit()
+            return None
+        except Exception as e:
+            db.session.rollback()
+            return {
+                'message': 'Save operation not successful',
+                'error': str(e)
+            }
+
+    def delete(self):
+        '''delete object'''
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return {
+                'message': 'Delete operation failed',
+                'error': str(e)
+            }
+
+class User(BaseModel):
     """docstring for Users"""
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50))
+    email = db.Column(db.String(80))
     password = db.Column(db.String(80))
     admin = db.Column(db.Boolean)
 
@@ -15,7 +44,7 @@ class User(db.Model):
         return '<User {}>'.format(self.id)
 
 
-class Meals(db.Model):
+class Meals(BaseModel):
     """docstring for Meals"""
     __tablename__ = "meals"
     id = db.Column(db.Integer, primary_key=True)
@@ -27,7 +56,7 @@ class Meals(db.Model):
         return '<Meals {}>'.format(self.id)
 
 
-class Menu(db.Model):
+class Menu(BaseModel):
     """docstring for Meals"""
     __tablename__ = "menu"
     id = db.Column(db.Integer, primary_key=True)
@@ -39,7 +68,7 @@ class Menu(db.Model):
         return '<Menu {}>'.format(self.id)
 
 
-class Orders(db.Model):
+class Orders(BaseModel):
     """docstring for Orders"""
     __tablename__ = "orders"
     id = db.Column(db.Integer, primary_key=True)

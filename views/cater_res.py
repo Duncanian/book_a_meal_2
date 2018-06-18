@@ -22,8 +22,8 @@ class MealMan(Resource):
         if not post_data['meal_name'] or not post_data['meal_price']:
             return {'message': 'Please enter all the details'}, 400
 
-        if not isinstance(post_data['meal_price'], int):
-            return {'message': 'Price should be a number'}, 400
+        if not isinstance(post_data['meal_price'], float):
+            return {'message': 'Price should be a float'}, 400
 
         if not isinstance(post_data['meal_name'], str):
             return {'message': 'Please enter a string value for meal'}, 400
@@ -38,9 +38,8 @@ class MealMan(Resource):
             return {"message": "The meal already exists"}, 400
 
         new_meal = Meals(
-            meal_name=post_data['meal_name'], meal_price=post_data['meal_price'])
-        db.session.add(new_meal)
-        db.session.commit()
+            meal_name=post_data['meal_name'], meal_price=round(post_data['meal_price'], 2))
+        new_meal.save()
         return {'message': 'New meal added!'}, 201
 
     @admin_only
@@ -76,8 +75,8 @@ class MealMan(Resource):
         if not isinstance(post_data['meal_name'], str):
             return {'message': 'Please enter a string value for meal'}, 400
 
-        if not isinstance(post_data['meal_price'], int):
-            return {'message': 'Please enter a number value for price'}, 400
+        if not isinstance(post_data['meal_price'], float):
+            return {'message': 'Please enter a float value for price'}, 400
 
         if len(post_data['meal_name'].strip()) < len(post_data['meal_name']):
             return {'message': 'Meal name should not have spaces!'}, 400
@@ -86,7 +85,7 @@ class MealMan(Resource):
             return {'message': 'Meal Price should not be 0 or a negative'}, 400
 
         meal.meal_name = post_data['meal_name']
-        meal.meal_price = post_data['meal_price']
+        meal.meal_price = round(post_data['meal_price'], 2)
         db.session.commit()
 
         return {"status": "success", "data": 'Meal modified!'}, 200
@@ -97,8 +96,7 @@ class MealMan(Resource):
 
         if not meal:
             return {"message": "The meal was not found"}, 404
-        db.session.delete(meal)
-        db.session.commit()
+        meal.delete()
         return {"message": "The meal has been deleted"}, 200
 
 
@@ -145,12 +143,10 @@ class Menus(Resource):
             return {'message': "Menu already available!"}, 400
 
         new_menu = Menu(menu_name=post_data['menu_name'])
-        db.session.add(new_menu)
-        db.session.commit()
+        new_menu.save()
         new_menu = Menu.query.filter_by(id=new_menu.id).first()
         new_menu.meals.extend(menu_meals)
-        db.session.add(new_menu)
-        db.session.commit()
+        new_menu.save()
         return {'message': 'New meal added to the menu!'}, 201
 
 

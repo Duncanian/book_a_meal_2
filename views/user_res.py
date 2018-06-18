@@ -13,14 +13,14 @@ class AuthCreate(Resource):
     def post(self):
         post_data = request.get_json(force=True)
 
-        if len(post_data) == 0 or len(post_data) == 1 or len(post_data) > 2:
-            return {'message': 'Please ensure that you have only Username and Password fields'}, 404
+        if len(post_data) == 0 or len(post_data) == 1 or len(post_data) == 2 or len(post_data) > 3:
+            return {'message': 'Please ensure that you have only Username, Email and Password fields'}, 404
 
-        if not post_data['password'] or not post_data['username']:
+        if not post_data['password'] or not post_data['username']or not post_data['email']:
             return {'message': 'Please enter all the details'}, 400
 
-        if not isinstance(post_data['password'], str) or not isinstance(post_data['username'], str):
-            return {'message': 'Please enter a string value for username and password'}, 400
+        if not isinstance(post_data['password'], str) or not isinstance(post_data['username'], str)or not isinstance(post_data['email'], str):
+            return {'message': 'Please enter a string value for username, email and password'}, 400
 
         if len(post_data['username'].strip()) < len(post_data['username']):
             return {'message': 'Username should not have spaces!'}, 400
@@ -39,9 +39,8 @@ class AuthCreate(Resource):
         hashed_password = generate_password_hash(
             post_data['password'], method='md5')
         new_user = User(
-            username=post_data['username'], password=hashed_password, admin=False)
-        db.session.add(new_user)
-        db.session.commit()
+            username=post_data['username'], email=post_data['email'], password=hashed_password, admin=False)
+        new_user.save()
         return {'message': 'New user created!'}, 201
 
     @admin_only
@@ -55,6 +54,7 @@ class AuthCreate(Resource):
             user_data = {}
             user_data['id'] = user.id
             user_data['username'] = user.username
+            user_data['email'] = user.email
             user_data['password'] = user.password
             output.append(user_data)
 
@@ -87,6 +87,30 @@ class AuthLogin(Resource):
             return {"token": token.decode('UTF-8')}, 201
         return {"message": "wrong password, please try again"}, 401
 
+class Profile(Resource):
+    """docstring for Profile"""
+    
+    @token_required
+    def post(self, active_user):
+        post_data = request.get_json(force=True)
+        if len(post_data) == 0 or len(post_data) > 1:
+            return {'message': 'Please ensure that you have only User ID field'}, 400
+
+        if not isinstance(post_data['u_id'], int):
+            return {'message': 'Please enter a number value for user ID'}, 400
+        my_profile = User.query.filter_by(id=post_data['u_id']).first()
+
+        if not my_profile:
+            return {"message":"No users found"}, 204
+        
+        user_data = {}
+        user_data['id'] = my_profile.id
+        user_data['username'] = my_profile.username
+        user_data['email'] = my_profile.email
+        user_data['password'] = my_profile.password
+
+        return {"status": "success", "data": user_data}, 201
+
 
 class MenuOrders(Resource):
     """docstring for MenuOrders"""
@@ -111,11 +135,11 @@ class MenuOrders(Resource):
         post_data = request.get_json(force=True)
         date = datetime.datetime.utcnow().date()
 
-        # deadline = datetime.time(15, 0, 0).hour
-        # start = datetime.time(5, 0, 0).hour
-        # current_time = datetime.datetime.utcnow().time().hour
-        # if current_time > deadline or current_time < start:
-        #     return {"message" : "Orders take place between 8:00 am to 3:00 pm only"}
+        deadline = datetime.time(17, 0, 0).hour
+        start = datetime.time(5, 0, 0).hour
+        current_time = datetime.datetime.utcnow().time().hour
+        if current_time > deadline or current_time < start:
+            return {"message" : "Orders take place between 8:00 am to 5:00 pm only"}
 
         if len(post_data) == 0 or len(post_data) > 1:
             return {'message': 'Please ensure that you have only a Meal ids field'}, 404
@@ -168,8 +192,7 @@ class MenuOrders(Resource):
 
             new_order = Orders(order_meal=one_order['meal_name'],
                                order_price=one_order['meal_price'], qty=1, order_by=user_det['user_id'])
-            db.session.add(new_order)
-            db.session.commit()
+            new_order.save()
 
         return {'message': 'Your order was successfully created!'}, 201
 
@@ -217,6 +240,5 @@ class MenuOrders(Resource):
 
         if not order:
             return {"message": "The order was not found"}, 404
-        db.session.delete(order)
-        db.session.commit()
+        order.delete()
         return {"message": "The order has been removed"}, 200

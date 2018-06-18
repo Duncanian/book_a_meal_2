@@ -28,48 +28,48 @@ class TestMeals(GroundTests):
         # Add meal
         self.add_meal_data = {
             "meal_name": "Chapatti",
-            "meal_price": 25
+            "meal_price": 25.00
         }
 
         # A missing detail in register details
         self.add_miss_data = {
             "meal_name": "",
-            "meal_price": 25
+            "meal_price": 25.00
         }
 
         # Wrong data type for meal_name
         self.meal_name_typo = {
             "meal_name": 12,
-            "meal_price": 25
+            "meal_price": 25.00
         }
 
         # Wrong data type for meal_price
         self.meal_price_typo = {
             "meal_name": "Chapatti",
-            "meal_price": "25"
+            "meal_price": "25.00"
         }
 
         # Spaces in meal name
         self.meal_name_space = {
             "meal_name": "Chapatti      ",
-            "meal_price": 25
+            "meal_price": 25.00
         }
         # Meal exists in db
         self.meal_in_db = {
             "meal_name": "Rice",
-            "meal_price": 200
+            "meal_price": 200.00
         }
 
         # Modify meal
         self.modify_meal = {
             "meal_name": "kuku",
-            "meal_price": 28
+            "meal_price": 28.00
         }
 
         # Modify meal with empty inputs
         self.mod_emp_meal = {
             "meal_name": "",
-            "meal_price": 28
+            "meal_price": 28.00
         }
 
         # Modify meal with meal name not string
@@ -87,7 +87,7 @@ class TestMeals(GroundTests):
         # Modify meal with meal name having spaces
         self.mod_space_meal = {
             "meal_name": "  1234567   ",
-            "meal_price": 28
+            "meal_price": 28.00
         }
 
     def tearDown(self):
@@ -146,7 +146,7 @@ class TestMeals(GroundTests):
             '/api/v2/meals/', data=json.dumps(self.meal_price_typo), headers=self.headers)
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
-        self.assertEqual(data['message'], 'Price should be a number')
+        self.assertEqual(data['message'], 'Price should be a float')
 
     def test_spaces_meal_name(self):
         '''Check if meal has spaces in it'''
@@ -203,7 +203,7 @@ class TestMeals(GroundTests):
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(
-            data['message'], 'Please enter a number value for price')
+            data['message'], 'Please enter a float value for price')
 
     def test_meal_name_having_spaces(self):
         '''Check if meal name has spaces'''
