@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 from app import Hello
-from views.user_res import AuthCreate, AuthLogin, MenuOrders
+from views.user_res import AuthCreate, AuthLogin, MenuOrders, Profile
 from views.cater_res import MealMan, Menus, OrdersAll
 from config import config
 
@@ -21,6 +21,8 @@ def create_app(config_filename):
                      '/api/v2/auth/signup/', '/api/v2/users', '/api/v2/users/')
 
     api.add_resource(AuthLogin, '/api/v2/auth/login', '/api/v2/auth/login/')
+
+    api.add_resource(Profile, '/api/v2/profile', '/api/v2/profile/')
 
     api.add_resource(MealMan, '/api/v2/meals/', '/api/v2/meals', '/api/v2/meals/', '/api/v2/meals', '/api/v2/meals/<int:meal_id>',
                      '/api/v2/meals/<int:meal_id>/', '/api/v2/meals/<int:meal_id>', '/api/v2/meals/<int:meal_id>/')
