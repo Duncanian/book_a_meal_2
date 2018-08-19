@@ -49,7 +49,7 @@ class Meals(BaseModel):
     __tablename__ = "meals"
     id = db.Column(db.Integer, primary_key=True)
     meal_name = db.Column(db.String(50))
-    meal_price = db.Column(db.Integer)
+    meal_price = db.Column(db.Float)
     menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), nullable=True)
 
     def __repr__(self):
@@ -57,7 +57,7 @@ class Meals(BaseModel):
 
 
 class Menu(BaseModel):
-    """docstring for Meals"""
+    """docstring for Menu"""
     __tablename__ = "menu"
     id = db.Column(db.Integer, primary_key=True)
     menu_name = db.Column(db.String(50))
@@ -73,10 +73,10 @@ class Orders(BaseModel):
     __tablename__ = "orders"
     id = db.Column(db.Integer, primary_key=True)
     order_meal = db.Column(db.String(50))
-    order_price = db.Column(db.Integer)
+    order_price = db.Column(db.Float)
     order_date = db.Column(db.String, default=datetime.utcnow().date())
     order_time = db.Column(db.String, default=datetime.utcnow().time())
-    qty = db.Column(db.Integer)
+    quantity = db.Column(db.Integer)
     order_by = db.Column(db.Integer)
 
     def __repr__(self):
