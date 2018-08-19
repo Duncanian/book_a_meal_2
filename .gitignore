@@ -1,0 +1,15 @@
+# Ignore these
+
+__pycache__/
+
+venv/
+
+.coverage
+
+*.pyc
+
+.env
+.pytest_cache/
+.cache/
+.vscode/
+.DS_Store
