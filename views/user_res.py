@@ -14,41 +14,64 @@ class AuthCreate(Resource):
         post_data = request.get_json(force=True)
 
         if len(post_data) == 0 or len(post_data) == 1 or len(post_data) == 2 or len(post_data) > 3:
-            return {'message': 'Please ensure that you have only Username, Email and Password fields'}, 404
+            return {'message': 'Please ensure that you have only Username, Email and Password fields'}, 400
 
-        if not post_data['password'] or not post_data['username']or not post_data['email']:
+        username = post_data['username']
+        password = post_data['password']
+        email = post_data['email']
+
+        if not password or not username or not email:
             return {'message': 'Please enter all the details'}, 400
 
-        if not isinstance(post_data['password'], str) or not isinstance(post_data['username'], str)or not isinstance(post_data['email'], str):
+        if not isinstance(password, str) or not isinstance(username, str)or not isinstance(email, str):
             return {'message': 'Please enter a string value for username, email and password'}, 400
 
-        if len(post_data['username'].strip()) < len(post_data['username']):
+        if len(username.strip()) < len(username):
             return {'message': 'Username should not have spaces!'}, 400
 
-        if len(post_data['password']) < 5:
+        if len(password) < 5:
             return {'message': 'Password should be more than 5 characters'}, 400
 
-        if len(post_data['password']) > 10:
-            return {'message': 'Password should be less than 10 characters'}, 400
+        if len(password.strip()) < len(password):
+            return {'message': 'Password should not have spaces!'}, 400
 
-        user = User.query.filter_by(username=post_data['username']).first()
+        user = User.query.filter_by(username=username).first()
 
         if user:
             return {"message": "Sorry, username already taken!"}, 400
 
+        superuser = User.query.filter_by(username="admin").first()
+
+        if not superuser:
+            # Create a new user
+            super_pass = generate_password_hash("admin", method='md5')
+            self.admin = User(
+                username="admin", password=super_pass, admin=True)
+            self.admin.save()
+
         hashed_password = generate_password_hash(
-            post_data['password'], method='md5')
+            password, method='md5')
         new_user = User(
-            username=post_data['username'], email=post_data['email'], password=hashed_password, admin=False)
+            username=username, email=email, password=hashed_password, admin=False)
         new_user.save()
-        return {'message': 'New user created!'}, 201
+
+        display_user = User.query.filter_by(username=username).first()
+
+        user_data = {}
+        user_data['id'] = display_user.id
+        user_data['username'] = display_user.username
+        user_data['email'] = display_user.email
+        user_data['password'] = display_user.password
+
+        return {'message': 'You have been successfully registered!', "data": user_data}, 201
 
     @admin_only
     def get(self, active_user):
         users = User.query.all()
 
         if not users:
-            return {"message":"No users found"}, 404
+            return {"message": "No users found"}, 204
+            # Not yet tested this
         output = []
         for user in users:
             user_data = {}
@@ -60,6 +83,32 @@ class AuthCreate(Resource):
 
         return {"status": "success", "data": output}, 200
 
+    @admin_only
+    def put(self, active_user, identity):
+        user = User.query.filter_by(id=identity).first()
+
+        if not user:
+            return {"message": "No such user found"}, 404
+
+        post_data = request.get_json(force=True)
+
+        admin = post_data['admin']
+
+        if not isinstance(admin, bool):
+            return {'message': 'Please enter a boolean value for admin'}, 400
+
+        user.admin = post_data['admin']
+        db.session.commit()
+
+        user_data = {}
+        user_data['id'] = user.id
+        user_data['username'] = user.username
+        user_data['email'] = user.email
+        user_data['password'] = user.password
+        user_data['admin'] = user.admin
+
+        return {"status": "success", "message": "User successfully made an admin", "data": user_data}, 200
+
 
 class AuthLogin(Resource):
     """docstring for AuthLogin"""
@@ -68,59 +117,36 @@ class AuthLogin(Resource):
         post_data = request.get_json(force=True)
 
         if len(post_data) == 0 or len(post_data) == 1 or len(post_data) > 2:
-            return {'message': 'Please ensure that you have only Username and Password fields'}, 404
+            return {'message': 'Please ensure that you have only Username and Password fields'}, 400
 
-        if not post_data['password'] or not post_data['username']:
+        username = post_data['username']
+        password = post_data['password']
+
+        if not password or not username:
             return {'message': 'Please enter all the details'}, 400
 
-        if not isinstance(post_data['password'], str) or not isinstance(post_data['username'], str):
+        if not isinstance(password, str) or not isinstance(username, str):
             return {'message': 'Please enter a string value for username and password'}, 400
 
-        user = User.query.filter_by(username=post_data['username']).first()
+        user = User.query.filter_by(username=username).first()
 
         if not user:
             return {'message': 'Please sign up then login'}, 404
 
-        if check_password_hash(user.password, post_data['password']):
+        if check_password_hash(user.password, password):
             token = jwt.encode({"user_id": user.id, "admin": user.admin, "exp": datetime.datetime.utcnow(
             ) + datetime.timedelta(minutes=30)}, getenv('SECRET_KEY'))
             return {"token": token.decode('UTF-8')}, 201
         return {"message": "wrong password, please try again"}, 401
 
-class Profile(Resource):
-    """docstring for Profile"""
-    
-    @token_required
-    def post(self, active_user):
-        post_data = request.get_json(force=True)
-        if len(post_data) == 0 or len(post_data) > 1:
-            return {'message': 'Please ensure that you have only User ID field'}, 400
 
-        if not isinstance(post_data['u_id'], int):
-            return {'message': 'Please enter a number value for user ID'}, 400
-        my_profile = User.query.filter_by(id=post_data['u_id']).first()
-
-        if not my_profile:
-            return {"message":"No users found"}, 204
-        
-        user_data = {}
-        user_data['id'] = my_profile.id
-        user_data['username'] = my_profile.username
-        user_data['email'] = my_profile.email
-        user_data['password'] = my_profile.password
-
-        return {"status": "success", "data": user_data}, 201
-
-
-class MenuOrders(Resource):
-    """docstring for MenuOrders"""
+class Menus(Resource):
+    """docstring for Get Menu"""
     @token_required
     def get(self, active_user):
-        #date = datetime.datetime.utcnow().date()
         menu = Menu.query.order_by(Menu.id.desc()).first()
-
         if not menu:
-            return {"message":"No menu set up for today"}, 404
+            return {"message": "No menu set up for today"}, 404
         output = []
         for meal in menu.meals:
             menu_data = {}
@@ -128,7 +154,11 @@ class MenuOrders(Resource):
             menu_data['menu_price'] = meal.meal_price
             output.append(menu_data)
 
-        return {"status": "success", "data": output}, 200
+        return {"status": "success", "data": {"Id": menu.id, "Menu": menu.menu_name, "Meals": output}}, 200
+
+
+class OrdersClass(Resource):
+    """docstring for Orders"""
 
     @token_required
     def post(self, active_user):
@@ -139,7 +169,7 @@ class MenuOrders(Resource):
         start = datetime.time(5, 0, 0).hour
         current_time = datetime.datetime.utcnow().time().hour
         if current_time > deadline or current_time < start:
-            return {"message" : "Orders take place between 8:00 am to 5:00 pm only"}
+            return {"message": "Orders take place between 8:00 am to 5:00 pm only"}
 
         if len(post_data) == 0 or len(post_data) > 1:
             return {'message': 'Please ensure that you have only a Meal ids field'}, 404
@@ -159,11 +189,8 @@ class MenuOrders(Resource):
 
         meal_ids = post_data['meal_ids']
 
-        if 'Authorization' in request.headers:
-            token = request.headers['Authorization']
-        user_det = jwt.decode(token, getenv('SECRET_KEY'))
-
         menu = Menu.query.order_by(Menu.id.desc()).first()
+
         meal_list = []
         output = []
         for meal in menu.meals:
@@ -181,6 +208,10 @@ class MenuOrders(Resource):
         if len(incorrect) > 0:
             return {"message": 'Please enter food that is in the menu'}, 404
 
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
+        user_det = jwt.decode(token, getenv('SECRET_KEY'))
+
         for item in meal_list:
             orders = [order for order in output if order["id"] == item]
             one_order = orders[0]
@@ -191,54 +222,105 @@ class MenuOrders(Resource):
                 return {'message': 'Sorry, the meal is already in your order'}, 400
 
             new_order = Orders(order_meal=one_order['meal_name'],
-                               order_price=one_order['meal_price'], qty=1, order_by=user_det['user_id'])
+                               order_price=one_order['meal_price'], quantity=1, order_by=user_det['user_id'])
             new_order.save()
 
-        return {'message': 'Your order was successfully created!'}, 201
+        orders = Orders.query.filter_by(order_date=str(
+            date), order_by=user_det['user_id']).all()
+
+        output_new = []
+        for order in orders:
+            order_data = {}
+            order_data['id'] = order.id
+            order_data['meal_name'] = order.order_meal
+            order_data['meal_price'] = order.order_price
+            order_data['order date'] = order.order_date
+            order_data['order time'] = order.order_time
+            order_data['quantity'] = order.quantity
+            output_new.append(order_data)
+
+        return {"status": "success", 'message': 'Your order was successfully created!', "data": {"My orders": output_new}}, 201
+
+    @admin_only
+    def get(self, active_user):
+        orders = Orders.query.all()
+
+        if not orders:
+            return {"message": "Orders unavailable"}
+        output = []
+        for order in orders:
+            order_data = {}
+            order_data['id'] = order.id
+            order_data['order_meal'] = order.order_meal
+            order_data['order_price'] = order.order_price
+            order_data['order_date'] = order.order_date
+            order_data['order_time'] = order.order_time
+            order_data['qty'] = order.qty
+            order_data['user_id'] = order.order_by
+            output.append(order_data)
+        return {"status": "success", "data": output}, 200
 
     @token_required
     def put(self, active_user, order_id):
         # change qty then multiply it to get the price
 
         post_data = request.get_json(force=True)
+
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
+        user_det = jwt.decode(token, getenv('SECRET_KEY'))
+
         deadline = datetime.time(15, 0, 0).hour
         current_time = datetime.datetime.utcnow().time().hour
         date = datetime.datetime.utcnow().date()
         order = Orders.query.filter_by(
-            id=order_id, order_date=str(date)).first()
+            id=order_id, order_date=str(date), order_by=user_det['user_id']).first()
 
         if not order:
             return {"message": "The order was not found"}, 404
 
         if len(post_data) == 0 or len(post_data) > 1:
-            return {'message': 'Please ensure that you have only a qty field'}, 404
+            return {'message': 'Please ensure that you have only a quantity field'}, 404
 
         if current_time > deadline:
-            return {"message" : "Your order has already expired, next time make a change before 3pm"}
+            return {"message": "Your order has already expired, next time make a change before 3pm"}
 
-        if not post_data['qty']:
+        if not post_data['quantity']:
             return {'message': 'Please enter the quantity you want to change to'}, 400
 
-        if not isinstance(post_data['qty'], int):
+        if not isinstance(post_data['quantity'], int):
             return {'message': 'Please enter a number value for quantity'}, 400
 
-        if post_data['qty'] < 1:
+        if post_data['quantity'] < 1:
             return {'message': 'Quantity should not be 0 or a negative'}, 400
 
-        order.qty = post_data['qty']
+        order.qty = post_data['quantity']
         total = order.qty * order.order_price
         order.order_price = total
         db.session.commit()
 
-        return {"status": "success", "data": 'Order modified!'}, 200
+        order_data = {}
+        order_data['id'] = order.id
+        order_data['meal_name'] = order.order_meal
+        order_data['meal_price'] = order.order_price
+        order_data['order date'] = order.order_date
+        order_data['order time'] = order.order_time
+        order_data['quantity'] = order.quantity
+
+        return {"status": "success", "message": "Your order was successfully created!", "data": order_data}, 200
 
     @token_required
     def delete(self, active_user, order_id):
         date = datetime.datetime.utcnow().date()
+
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
+        user_det = jwt.decode(token, getenv('SECRET_KEY'))
+
         order = Orders.query.filter_by(
-            id=order_id, order_date=str(date)).first()
+            id=order_id, order_date=str(date), order_by=user_det['user_id']).first()
 
         if not order:
             return {"message": "The order was not found"}, 404
         order.delete()
-        return {"message": "The order has been removed"}, 200
+        return {"status": "success", "message": "The order has been removed"}, 200
