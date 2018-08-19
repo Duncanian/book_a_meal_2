@@ -46,22 +46,22 @@ class TestMeals(GroundTests):
 
         # Enter correct qty
         self.qty = {
-            'qty': 3
+            'quantity': 3
         }
 
         # Enter zero or negative qty
         self.neg_qty = {
-            'qty': -3
+            'quantity': -3
         }
 
         # Enter empty qty
         self.empty_qty = {
-            'qty': ''
+            'quantity': ''
         }
 
         # Enter wrong input qty
         self.wrong_qty = {
-            'qty': '3'
+            'quantity': '3'
         }
 
         # Add different inputs in meal ids list
@@ -69,13 +69,13 @@ class TestMeals(GroundTests):
             "meal_ids": [1, 2, '3']
         }
 
-        # Add negative meal ids 
+        # Add negative meal ids
         self.meal_ids_neg = {
             "meal_ids": [1, 2, -3]
         }
 
-        self.tester.post('/api/v2/menu/',
-                         data=json.dumps(self.add_menu_data), headers=self.headers)
+        self.tester.post(
+            '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
 
     def tearDown(self):
         GroundTests.tearDown(self)
@@ -125,14 +125,18 @@ class TestMeals(GroundTests):
 
     # def test_id_that_is_not_in_menu(self):
     #     '''Check if meal id that doesnt exist'''
-    #     response = self.tester.post(
-    #         '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
-    #     self.assertEqual(response.status_code, 201)
+        # response = self.tester.post(
+        #     '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
+        # # self.assertEqual(response.status_code, 201)
+        # data = json.loads(response.data)
+        # print(data)
 
-    #     response = self.tester.post('/api/v2/orders', data=json.dumps(self.wrong_data), headers=self.headers)
-    #     self.assertEqual(response.status_code, 404)
-    #     data = json.loads(response.data)
-    #     self.assertEqual(data['message'], "Please enter food that is in the menu")
+        # response = self.tester.post(
+        #     '/api/v2/orders', data=json.dumps(self.wrong_data), headers=self.headers)
+        # self.assertEqual(response.status_code, 404)
+        # data = json.loads(response.data)
+        # self.assertEqual(
+        #     data['message'], "Please enter food that is in the menu")
 
     def test_meal_ids_neg_or_zero(self):
         '''Check if meal ids are negative or zero'''
@@ -145,6 +149,7 @@ class TestMeals(GroundTests):
 
     def test_success_order(self):
         '''Check for successful order'''
+
         response = self.tester.post(
             '/api/v2/orders', data=json.dumps(self.add_order_data), headers=self.headers)
         self.assertEqual(response.status_code, 201)
@@ -176,14 +181,14 @@ class TestMeals(GroundTests):
         self.assertEqual(response.status_code, 404)
         data = json.loads(response.data)
         self.assertEqual(
-            data['message'], 'Please ensure that you have only a qty field')
+            data['message'], 'Please ensure that you have only a quantity field')
 
         response = self.tester.put(
             '/api/v2/orders/1', data=json.dumps(self.more_fields), headers=self.headers)
         self.assertEqual(response.status_code, 404)
         data = json.loads(response.data)
         self.assertEqual(
-            data['message'], 'Please ensure that you have only a qty field')
+            data['message'], 'Please ensure that you have only a quantity field')
 
     def test_order_doesnt_exist(self):
         '''Check if order doesnt exist'''
@@ -212,9 +217,9 @@ class TestMeals(GroundTests):
 
     def test_order_qty_wrong_input(self):
         '''Check if qty is not an integer'''
-        response1 = self.tester.post(
+        response = self.tester.post(
             '/api/v2/orders', data=json.dumps(self.add_order_data), headers=self.headers)
-        self.assertEqual(response1.status_code, 201)
+        self.assertEqual(response.status_code, 201)
 
         response = self.tester.put(
             '/api/v2/orders/1', data=json.dumps(self.wrong_qty), headers=self.headers)
@@ -236,18 +241,18 @@ class TestMeals(GroundTests):
         self.assertEqual(
             data['message'], "Quantity should not be 0 or a negative")
 
-    # def test_order_success_modified(self):
-    #     '''Check for a successful order modification'''
-    #     response1 = self.tester.post(
-    #         '/api/v2/orders', data=json.dumps(self.add_order_data), headers=self.headers)
-    #     self.assertEqual(response1.status_code, 201)
+    def test_order_success_modified(self):
+        '''Check for a successful order modification'''
+        response1 = self.tester.post(
+            '/api/v2/orders', data=json.dumps(self.add_order_data), headers=self.headers)
+        self.assertEqual(response1.status_code, 201)
 
-    #     response = self.tester.put(
-    #         '/api/v2/orders/1', data=json.dumps(self.qty), headers=self.headers)
-    #     self.assertEqual(response.status_code, 200)
-    #     data = json.loads(response.data)
-    #     print(data)
-    #     self.assertEqual(data['data'], "Order modified!")
+        response = self.tester.put(
+            '/api/v2/orders/1', data=json.dumps(self.qty), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], "Your order was successfully created!")
 
     def test_delete_when_order_unavailable(self):
         '''Check absence of order to be deleted'''

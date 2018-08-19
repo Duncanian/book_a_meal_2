@@ -170,7 +170,7 @@ class TestMeals(GroundTests):
             '/api/v2/menu/', data=json.dumps(self.add_menu_data), headers=self.headers)
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data)
-        self.assertEqual(data['message'], "New meal added to the menu!")
+        self.assertEqual(data['message'], "New menu created!")
 
     def test_menu_exists(self):
         '''Check if the menu exists'''
@@ -193,7 +193,7 @@ class TestMeals(GroundTests):
         response = self.tester.get('/api/v2/menu/', headers=self.headers)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
-        self.assertIsInstance(data['data'], list, msg='Incorrect output type')
+        self.assertIsInstance(data['data'], dict, msg='Incorrect output type')
 
     def test_meal_ids_negative(self):
         '''Check if meal ids are empty'''

@@ -46,7 +46,13 @@ class TestMeals(GroundTests):
         # Wrong data type for meal_price
         self.meal_price_typo = {
             "meal_name": "Chapatti",
-            "meal_price": "25.00"
+            "meal_price": "25"
+        }
+
+        # Negative meal_price
+        self.meal_price_neg = {
+            "meal_name": "Chapatti",
+            "meal_price": -25.00
         }
 
         # Spaces in meal name
@@ -105,21 +111,21 @@ class TestMeals(GroundTests):
         '''Test if one enters no field, one field or more than two fields'''
         response = self.tester.post(
             '/api/v2/meals/', data=json.dumps(self.no_field), headers=self.headers)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(
             data['message'], 'Please ensure that you have only Meal Name and Meal Price fields')
 
         response = self.tester.post(
             '/api/v2/meals/', data=json.dumps(self.one_field), headers=self.headers)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(
             data['message'], 'Please ensure that you have only Meal Name and Meal Price fields')
 
         response = self.tester.post(
             '/api/v2/meals/', data=json.dumps(self.more_fields), headers=self.headers)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(
             data['message'], 'Please ensure that you have only Meal Name and Meal Price fields')
@@ -134,11 +140,12 @@ class TestMeals(GroundTests):
 
     # def test_type_of_meal_name(self):
     #     '''Check if meal to be added is a string'''
-    #     response = self.tester.post('/api/v2/meals/', data=json.dumps(self.meal_name_typo), headers=self.headers)
+    #     response = self.tester.post(
+    #         '/api/v2/meals/', data=json.dumps(self.meal_name_typo), headers=self.headers)
     #     self.assertEqual(response.status_code, 200)
     #     data = json.loads(response.data)
-    #     print(data)
-    #     self.assertEqual(data['message'], 'Please enter a string value for meal name')
+    #     self.assertEqual(
+    #         data['message'], 'Please enter a string value for meal name')
 
     def test_type_of_meal_price(self):
         '''Check if meal price is an integer'''
@@ -147,14 +154,6 @@ class TestMeals(GroundTests):
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertEqual(data['message'], 'Price should be a float')
-
-    def test_spaces_meal_name(self):
-        '''Check if meal has spaces in it'''
-        response = self.tester.post(
-            '/api/v2/meals/', data=json.dumps(self.meal_name_space), headers=self.headers)
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], 'Meal name should not have spaces!')
 
     def test_meal_existing_in_db(self):
         '''Check if meal exists in db'''
@@ -170,6 +169,29 @@ class TestMeals(GroundTests):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertIsInstance(data['data'], list, msg='Incorrect output type')
+
+    def test_wrong_fields_in_modify_meal(self):
+        '''Test if one enters no field, one field or more than two fields'''
+        response = self.tester.put(
+            '/api/v2/meals/1', data=json.dumps(self.no_field), headers=self.headers)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Meal Name and Meal Price fields')
+
+        response = self.tester.put(
+            '/api/v2/meals/1', data=json.dumps(self.one_field), headers=self.headers)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Meal Name and Meal Price fields')
+
+        response = self.tester.put(
+            '/api/v2/meals/1', data=json.dumps(self.more_fields), headers=self.headers)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Please ensure that you have only Meal Name and Meal Price fields')
 
     def test_doesnt_meal_exists(self):
         '''Check if meal doesn't exists in db'''
@@ -205,21 +227,22 @@ class TestMeals(GroundTests):
         self.assertEqual(
             data['message'], 'Please enter a float value for price')
 
-    def test_meal_name_having_spaces(self):
-        '''Check if meal name has spaces'''
-        response = self.tester.put(
-            '/api/v2/meals/1', data=json.dumps(self.mod_space_meal), headers=self.headers)
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertEqual(data['message'], 'Meal name should not have spaces!')
-
     def test_modified_success(self):
         '''Check for successful meal modification'''
         response = self.tester.put(
             '/api/v2/meals/1', data=json.dumps(self.modify_meal), headers=self.headers)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
-        self.assertEqual(data['data'], 'Meal modified!')
+        self.assertEqual(data['message'], 'Meal modified!')
+
+    def test_meal_price_negative_or_zero(self):
+        '''Test if meal price is negative or zero'''
+        response = self.tester.put(
+            '/api/v2/meals/1', data=json.dumps(self.meal_price_neg), headers=self.headers)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertEqual(
+            data['message'], 'Meal Price should not be 0 or a negative')
 
     def test_delete_when_meal_unavailable(self):
         '''Check presence of meal to be deleted'''

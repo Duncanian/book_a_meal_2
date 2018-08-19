@@ -24,24 +24,26 @@ class GroundTests(TestCase):
         # Create a new user
         hashed_password = generate_password_hash("#2345", method='md5')
         self.new_user = User(
-            username="ian", password=hashed_password, admin=True)
-        db.session.add(self.new_user)
-        db.session.commit()
+            username="ian", email="ian@test.com", password=hashed_password, admin=True)
+        self.new_user.save()
+
+        # Create a new user 2
+        hashed_password = generate_password_hash("#2345678", method='md5')
+        self.new_user = User(
+            username="ian5678", email="ian@test.com", password=hashed_password, admin=False)
+        self.new_user.save()
 
         # Add new meal
-        self.new_meal = Meals(meal_name="Rice", meal_price=200)
-        db.session.add(self.new_meal)
-        db.session.commit()
+        self.new_meal = Meals(meal_name="Rice", meal_price=200.00)
+        self.new_meal.save()
 
         # Add new meal 2
-        self.new_meal2 = Meals(meal_name="Pasta", meal_price=100)
-        db.session.add(self.new_meal2)
-        db.session.commit()
+        self.new_meal2 = Meals(meal_name="Pasta", meal_price=100.00)
+        self.new_meal2.save()
 
         # Add new meal 3
-        self.new_meal3 = Meals(meal_name="Beef", meal_price=150)
-        db.session.add(self.new_meal3)
-        db.session.commit()
+        self.new_meal3 = Meals(meal_name="Beef", meal_price=150.00)
+        self.new_meal3.save()
 
         self.tester = self.app.test_client()
 
