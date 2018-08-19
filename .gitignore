@@ -11,3 +11,5 @@ venv/
 .env
 .pytest_cache/
 .cache/
+.vscode/
+.DS_Store
