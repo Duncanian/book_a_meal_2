@@ -165,11 +165,11 @@ class OrdersClass(Resource):
         post_data = request.get_json(force=True)
         date = datetime.datetime.utcnow().date()
 
-        deadline = datetime.time(17, 0, 0).hour
+        deadline = datetime.time(23, 0, 0).hour
         start = datetime.time(5, 0, 0).hour
         current_time = datetime.datetime.utcnow().time().hour
         if current_time > deadline or current_time < start:
-            return {"message": "Orders take place between 8:00 am to 5:00 pm only"}
+            return {"message": "Orders take place between 8:00 am to 11:00 pm only"}
 
         if len(post_data) == 0 or len(post_data) > 1:
             return {'message': 'Please ensure that you have only a Meal ids field'}, 404
@@ -270,7 +270,7 @@ class OrdersClass(Resource):
             token = request.headers['Authorization']
         user_det = jwt.decode(token, getenv('SECRET_KEY'))
 
-        deadline = datetime.time(15, 0, 0).hour
+        deadline = datetime.time(23, 0, 0).hour
         current_time = datetime.datetime.utcnow().time().hour
         date = datetime.datetime.utcnow().date()
         order = Orders.query.filter_by(
@@ -283,7 +283,7 @@ class OrdersClass(Resource):
             return {'message': 'Please ensure that you have only a quantity field'}, 404
 
         if current_time > deadline:
-            return {"message": "Your order has already expired, next time make a change before 3pm"}
+            return {"message": "Your order has already expired, next time make a change before 11pm"}
 
         if not post_data['quantity']:
             return {'message': 'Please enter the quantity you want to change to'}, 400
